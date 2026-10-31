@@ -1,12 +1,9 @@
-import { useState } from "react"
-
-function RenderZero() {
-  const [tasks, setTasks] = useState<string[]>([])
+function NeverRenderZero() {
+  const tasks: string[] = []
 
   return (
     <div className="p-5">
-
-      {/* Wrong: tasks.length can return 0, and React renders that 0 */}
+      {/* Wrong: tasks.length returns 0, which React renders */}
       {tasks.length && <p>Task List</p>}
 
       {/* Correct: use a boolean condition */}
@@ -15,9 +12,8 @@ function RenderZero() {
           No tasks available
         </p>
       )}
-
     </div>
   )
 }
 
-export default RenderZero
+export default NeverRenderZero
