@@ -13,14 +13,16 @@ type UserListProps = {
 
 function Spinner() {
   return (
-    <div className="mx-auto mt-16 h-10 w-10 animate-spin rounded-full border-4 border-slate-600 border-t-indigo-400" />
+    <div className="flex justify-center py-10">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-600 border-t-indigo-400" />
+    </div>
   )
 }
 
 function UserList({ users, loading }: UserListProps) {
   const [search, setSearch] = useState("")
 
-  // Filter users before return
+  // Compute the filtered list during render
   const q = search.trim().toLowerCase()
 
   const filtered = users.filter(
@@ -48,7 +50,7 @@ function UserList({ users, loading }: UserListProps) {
         <Spinner />
       ) : (
         <>
-          {/* Result count */}
+          {/* Dynamic result count */}
           <p className="mb-4 text-sm text-slate-500">
             Showing {filtered.length} of {users.length} users
           </p>
@@ -62,7 +64,7 @@ function UserList({ users, loading }: UserListProps) {
             </p>
           )}
 
-          {/* User cards */}
+          {/* Filtered user list */}
           <div className="space-y-3">
             {filtered.map((user) => (
               <div
