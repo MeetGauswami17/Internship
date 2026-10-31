@@ -1,24 +1,11 @@
-import LoginSwitch from "./components/LoginSwitch"
-import TaskList from "./components/TaskList"
-import LevelBar from "./components/LevelBar"
-import GuardClause from "./components/GuardClause"
-import RenderZero from "./components/RenderZero"
+
+import TaskManager from "./components/TaskManager"
 
 function App() {
   return (
-    <div className="min-h-screen space-y-8 bg-slate-900 p-8 text-white">
-
-      <LoginSwitch />
-
-      <TaskList />
-
-      <LevelBar />
-
-      <GuardClause />
-
-      <RenderZero />
-
-    </div>
+    <main className="min-h-screen bg-slate-900 p-6 sm:p-10">
+      <TaskManager />
+    </main>
   )
 }
 
