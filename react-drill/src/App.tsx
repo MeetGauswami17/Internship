@@ -1,12 +1,8 @@
 
-import TaskManager from "./components/TaskManager"
+import TipCalculator from "./components/TipCalculator"
 
 function App() {
-  return (
-    <main className="min-h-screen bg-slate-900 p-6 sm:p-10">
-      <TaskManager />
-    </main>
-  )
+  return <TipCalculator />
 }
 
 export default App
