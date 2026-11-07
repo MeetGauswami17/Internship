@@ -2,7 +2,6 @@
 import { createContext, useContext } from "react"
 import type { ReactNode } from "react"
 import useLocalStorage from "../hooks/useLocalStorage"
-
 type Theme = "dark" | "light"
 
 type ThemeContextValue = {
@@ -13,10 +12,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useLocalStorage<Theme>(
-    "theme",
-    "dark"
-  )
+  const [theme, setTheme] = useLocalStorage<Theme>("theme", "dark")
 
   function toggleTheme() {
     setTheme(currentTheme =>

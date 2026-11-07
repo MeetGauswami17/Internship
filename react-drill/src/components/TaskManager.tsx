@@ -1,7 +1,6 @@
 
 import { useState } from "react"
 import useLocalStorage from "../hooks/useLocalStorage"
-
 type Task = {
   id: string
   title: string
@@ -10,10 +9,7 @@ type Task = {
 
 function TaskManager() {
   // Save tasks automatically in localStorage
-  const [tasks, setTasks] = useLocalStorage<Task[]>(
-    "drill-tasks",
-    []
-  )
+  const [tasks, setTasks] = useLocalStorage<Task[]>("drill-tasks", [])
 
   // Save the search filter automatically too
   const [filterText, setFilterText] = useLocalStorage<string>(
