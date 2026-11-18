@@ -1,19 +1,25 @@
+
 function About() {
   return (
-    <div className="max-w-3xl mx-auto py-10">
-      <h1 className="text-3xl font-bold text-indigo-400 mb-5">
-        About My Learning
+    <div className="max-w-3xl mx-auto p-8">
+      <h1 className="text-3xl font-bold text-indigo-600 mb-4">
+        About DeskTickets
       </h1>
 
-      <p className="text-slate-300 leading-8">
-        During my four weeks of learning React, I studied HTML,
-        CSS, JavaScript, React components, props, state,
-        hooks, API fetching, forms and conditional rendering.
-        I also learned how to use React Router to create
-        multiple pages in a single application.
+      <p className="text-gray-600 leading-7">
+        DeskTickets is a simple ticket management application
+        built using React, TypeScript, and Tailwind CSS.
+        It helps users organize support tickets by their
+        status and priority.
+      </p>
+
+      <p className="text-gray-600 leading-7 mt-4">
+        Users can create new tickets, update ticket status,
+        delete tickets, and search tickets by subject.
+        All ticket information is saved in browser localStorage.
       </p>
     </div>
-  )
+  );
 }
 
-export default About
+export default About;
