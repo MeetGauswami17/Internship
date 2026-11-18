@@ -5,23 +5,26 @@ import supabase from "../lib/supabaseClient";
 function Dashboard() {
   const [ticketCount, setTicketCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchTicketCount() {
+    const fetchTicketCount = async () => {
+      setLoading(true);
+      setError(null);
+
       const { count, error } = await supabase
         .from("tickets")
         .select("*", { count: "exact", head: true });
 
       if (error) {
-        console.error("Error fetching tickets:", error.message);
         setError(error.message);
+        setTicketCount(null);
       } else {
         setTicketCount(count ?? 0);
       }
 
       setLoading(false);
-    }
+    };
 
     fetchTicketCount();
   }, []);
@@ -37,18 +40,22 @@ function Dashboard() {
       </p>
 
       <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-gray-500">Total Tickets</h2>
+        <h2 className="text-gray-500 font-medium">
+          Total Tickets
+        </h2>
 
-        <p className="mt-3 text-3xl font-bold text-indigo-600">
-          {loading ? "Loading..." : ticketCount}
-        </p>
+        {loading ? (
+          <p className="mt-3 text-gray-500">Loading tickets...</p>
+        ) : error ? (
+          <p className="mt-3 text-red-600">
+            Error: {error}
+          </p>
+        ) : (
+          <p className="mt-3 text-3xl font-bold text-indigo-600">
+            {ticketCount}
+          </p>
+        )}
       </div>
-
-      {error && (
-        <p className="mt-4 text-red-600">
-          Failed to fetch tickets: {error}
-        </p>
-      )}
     </div>
   );
 }
