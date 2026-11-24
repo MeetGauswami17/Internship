@@ -1,46 +1,40 @@
+
+import { useEffect } from "react";
+import supabase from "../lib/supabaseClient";
 import PageHeader from "../components/ui/PageHeader";
 
-
 function Login() {
+  useEffect(() => {
+    async function checkSession() {
+      const { data, error } = await supabase.auth.getSession();
+
+      console.log("Current session:", data);
+
+      if (error) {
+        console.error("Auth connection error:", error);
+      }
+    }
+
+    void checkSession();
+  }, []);
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
+    <div className="mx-auto max-w-xl space-y-6">
+      <PageHeader
+        title="Login"
+        subtitle="Authentication setup and session testing"
+      />
 
-      <div className="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm">
+      <div className="rounded-xl border border-slate-700 bg-slate-900 p-6">
+        <h2 className="text-xl font-semibold text-white">
+          Authentication
+        </h2>
 
-        <PageHeader
-          title="Agent Login"
-          subtitle="Sign in to access your support dashboard."
-        />
-
-        <h1 className="text-3xl font-bold text-gray-900 text-center">
-          Agent Login
-        </h1>
-
-        <p className="mt-3 text-center text-gray-500">
-          Sign in to access your support dashboard.
+        <p className="mt-3 text-sm leading-6 text-slate-400">
+          Supabase authentication is being configured. The current
+          session is temporarily checked in the browser console.
         </p>
-
-        <div className="mt-8 space-y-4">
-
-          <input
-            type="email"
-            placeholder="Email address"
-            className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-
-          <button className="w-full rounded-lg bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700">
-            Login
-          </button>
-
-        </div>
       </div>
-
     </div>
   );
 }
