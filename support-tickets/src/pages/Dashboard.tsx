@@ -20,18 +20,16 @@ function Dashboard() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data, error: dbError } = await supabase
         .from("tickets")
-        .select(
-          "id, customer_name, customer_email, subject, description, category, priority, status, assigned_to, created_at"
-        )
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        setError(error.message);
+      if (dbError) {
+        setError(dbError.message);
         setTickets([]);
-      } else {
-        setTickets((data ?? []) as Ticket[]);
+      } else if (data) {
+        setTickets(data as unknown as Ticket[]);
       }
 
       setLoading(false);
@@ -41,114 +39,173 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="w-full">
 
+      {/* Page Header */}
       <PageHeader
-        title="Agent Dashboard"
-        subtitle="Manage customer support tickets from one place."
+        title="Tickets"
+        subtitle="Every customer problem, newest first - AI already triaged them."
       />
 
-      {/* Total Tickets */}
-      <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="text-gray-500 font-medium">
-          Total Tickets
-        </h2>
+      {/* Ticket Count */}
+      {!loading && !error && (
+        <p className="mb-6 text-sm text-slate-400">
+          <span className="font-semibold text-indigo-400">
+            {tickets.length}
+          </span>{" "}
+          open tickets
+        </p>
+      )}
 
-        {loading ? (
-          <p className="mt-3 text-gray-500">
+      {/* Loading State */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900 p-12">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-indigo-500"></div>
+
+          <p className="mt-4 text-sm text-slate-400">
             Loading tickets...
           </p>
-        ) : error ? (
-          <p className="mt-3 text-red-600">
-            Error: {error}
-          </p>
-        ) : (
-          <p className="mt-3 text-3xl font-bold text-indigo-600">
-            {tickets.length}
-          </p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Ticket List */}
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Recent Tickets
-        </h2>
+      {/* Error State */}
+      {!loading && error && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+          <h2 className="font-semibold text-red-400">
+            Something went wrong
+          </h2>
 
-        {loading ? (
-          <p className="mt-5 text-gray-500">
-            Loading ticket details...
-          </p>
-        ) : error ? (
-          <p className="mt-5 text-red-600">
+          <p className="mt-2 text-sm text-red-300">
             Unable to load tickets: {error}
           </p>
-        ) : tickets.length === 0 ? (
-          <p className="mt-5 text-gray-500">
-            No tickets found.
-          </p>
-        ) : (
-          <div className="mt-5 grid gap-5">
-            {tickets.map((ticket) => (
-              <div
-                key={ticket.id}
-                className="rounded-xl border bg-white p-6 shadow-sm"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {ticket.subject}
-                    </h3>
+        </div>
+      )}
 
-                    <p className="mt-1 text-sm text-gray-500">
-                      Customer: {ticket.customer_name}
+      {/* Empty State */}
+      {!loading && !error && tickets.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900 px-6 py-16 text-center">
+
+          <div className="text-5xl">
+            📭
+          </div>
+
+          <h2 className="mt-5 text-xl font-semibold text-slate-100">
+            No tickets yet
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-400">
+            No tickets yet - submit one from the home page.
+          </p>
+
+        </div>
+      )}
+
+      {/* Tickets Table */}
+      {!loading && !error && tickets.length > 0 && (
+        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+
+          <table className="w-full min-w-[850px] text-left text-sm">
+
+            <thead className="border-b border-slate-800 bg-slate-800/60 text-xs uppercase tracking-wider text-slate-400">
+              <tr>
+                <th className="px-6 py-4 font-semibold">
+                  Subject
+                </th>
+
+                <th className="px-6 py-4 font-semibold">
+                  Customer
+                </th>
+
+                <th className="px-6 py-4 text-right font-semibold">
+                  Category
+                </th>
+
+                <th className="px-6 py-4 text-right font-semibold">
+                  Priority
+                </th>
+
+                <th className="px-6 py-4 text-right font-semibold">
+                  Status
+                </th>
+
+                <th className="px-6 py-4 text-right font-semibold">
+                  Created
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-800">
+
+              {tickets.map((ticket) => (
+                <tr
+                  key={ticket.id}
+                  className="transition-colors hover:bg-slate-800/50"
+                >
+
+                  {/* Subject */}
+                  <td className="px-6 py-5">
+                    <p className="font-medium text-slate-100">
+                      {ticket.subject}
+                    </p>
+                  </td>
+
+                  {/* Customer */}
+                  <td className="px-6 py-5">
+                    <p className="font-medium text-slate-200">
+                      {ticket.customer_name}
                     </p>
 
-                    <p className="text-sm text-gray-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       {ticket.customer_email}
                     </p>
-                  </div>
+                  </td>
 
-                  <span className="text-xs text-gray-400">
+                  {/* Category */}
+                  <td className="px-6 py-5 text-right">
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                        CATEGORY_COLORS[ticket.category]
+                      }`}
+                    >
+                      {ticket.category}
+                    </span>
+                  </td>
+
+                  {/* Priority */}
+                  <td className="px-6 py-5 text-right">
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                        PRIORITY_COLORS[ticket.priority]
+                      }`}
+                    >
+                      {ticket.priority}
+                    </span>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-5 text-right">
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                        STATUS_COLORS[ticket.status]
+                      }`}
+                    >
+                      {ticket.status.replace("_", " ")}
+                    </span>
+                  </td>
+
+                  {/* Created Date */}
+                  <td className="whitespace-nowrap px-6 py-5 text-right text-slate-400">
                     {new Date(ticket.created_at).toLocaleDateString()}
-                  </span>
-                </div>
+                  </td>
 
-                <p className="mt-4 text-sm text-gray-600">
-                  {ticket.description}
-                </p>
+                </tr>
+              ))}
 
-                {/* Category, Priority and Status Badges */}
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      CATEGORY_COLORS[ticket.category]
-                    }`}
-                  >
-                    {ticket.category}
-                  </span>
+            </tbody>
+          </table>
 
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      PRIORITY_COLORS[ticket.priority]
-                    }`}
-                  >
-                    {ticket.priority}
-                  </span>
-
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      STATUS_COLORS[ticket.status]
-                    }`}
-                  >
-                    {ticket.status.replace("_", " ")}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
     </div>
   );
