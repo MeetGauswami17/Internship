@@ -1,8 +1,10 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { Navigate } from "react-router-dom";
 import supabase from "../lib/supabaseClient";
 import PageHeader from "../components/ui/PageHeader";
+import { useAuth } from "../context/AuthContext";
 
 type AuthMode = "signup" | "signin";
 
@@ -25,12 +27,31 @@ const initialForm: FormState = {
 };
 
 function Login() {
+  const { session, loading } = useAuth();
+
   const [mode, setMode] = useState<AuthMode>("signin");
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-600 border-t-indigo-500" />
+          <p className="text-sm text-slate-400">
+            Checking authentication...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (session) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   function setField(field: keyof FormState, value: string) {
     setForm((previous) => ({
@@ -93,7 +114,6 @@ function Login() {
 
     try {
       if (mode === "signup") {
-        // Create the Supabase Auth user.
         const { data, error: authError } =
           await supabase.auth.signUp({
             email,
@@ -104,13 +124,14 @@ function Login() {
           throw authError;
         }
 
-        // With email confirmation disabled, Supabase returns
-        // a user and an active session immediately.
-        // The same user ID is used in the agents table.
+        if (!data.user) {
+          throw new Error("Account creation failed. Please try again.");
+        }
+
         const { error: profileError } = await supabase
           .from("agents")
           .insert({
-            id: data.user!.id,
+            id: data.user.id,
             name: form.name.trim(),
             email,
             role: "agent",
@@ -120,20 +141,11 @@ function Login() {
           throw profileError;
         }
 
-        // Check and display the new session.
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.getSession();
-
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        console.log("Signup session:", sessionData.session);
-
-        setSuccessMessage("Account created successfully! You are signed in.");
+        setSuccessMessage(
+          "Account created successfully! You are signed in."
+        );
         setForm(initialForm);
       } else {
-        // Sign in an existing user.
         const { error: authError } =
           await supabase.auth.signInWithPassword({
             email,
@@ -143,16 +155,6 @@ function Login() {
         if (authError) {
           throw authError;
         }
-
-        // Check and display the current session.
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.getSession();
-
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        console.log("Signin session:", sessionData.session);
 
         setSuccessMessage("Signed in!");
         setForm(initialForm);
@@ -178,7 +180,6 @@ function Login() {
       />
 
       <section className="mx-auto max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg sm:p-8">
-        {/* Mode Toggle */}
         <div className="mb-6 grid grid-cols-2 rounded-lg bg-slate-800 p-1">
           <button
             type="button"
@@ -218,7 +219,6 @@ function Login() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name - Signup Only */}
           {mode === "signup" && (
             <div>
               <label
@@ -248,7 +248,6 @@ function Login() {
             </div>
           )}
 
-          {/* Email */}
           <div>
             <label
               htmlFor="agent-email"
@@ -276,7 +275,6 @@ function Login() {
             )}
           </div>
 
-          {/* Password */}
           <div>
             <label
               htmlFor="agent-password"
@@ -306,7 +304,6 @@ function Login() {
             )}
           </div>
 
-          {/* Error Message */}
           {errorMessage && (
             <p
               role="alert"
@@ -316,7 +313,6 @@ function Login() {
             </p>
           )}
 
-          {/* Success Message */}
           {successMessage && (
             <p
               role="status"
@@ -326,7 +322,6 @@ function Login() {
             </p>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting}
