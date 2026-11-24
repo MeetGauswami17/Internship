@@ -1,90 +1,48 @@
 
 # Authentication Notes
 
-## 1. Two-Layer User Model
+## Redirect Memory Pattern
 
-Our application uses two layers to manage users.
+The protected route uses `useLocation()` to remember the URL the user tried to access.
 
-### Supabase Auth (auth.users)
+When a user is not signed in, `AuthedRoute` redirects them to `/login` and passes the attempted location through navigation state:
 
-Supabase manages the auth.users table. It stores authentication information such as the user's email, password credentials and unique user ID.
+```tsx
+<Navigate
+  to="/login"
+  replace
+  state={{ from: location }}
+/>
+```
 
-We do not directly manage this table.
+The Login page reads the saved pathname using `useLocation()`.
 
-### Agents Table (agents)
+After successful sign-in or sign-up, the user is redirected to the saved destination. If there is no saved destination, the default route is `/dashboard`.
 
-The agents table belongs to our application. It stores additional information about support agents, such as:
+```tsx
+const from =
+  location.state?.from?.pathname ?? "/dashboard";
 
-- Agent ID
-- Name
-- Email
-- Role
+navigate(from, { replace: true });
+```
 
-The important thing is that the ID in the agents table must be the same as the ID of the user created in Supabase Auth.
+## Authentication Failure Test Log
 
-This connects the authenticated user with their application profile.
+Run each test and record the actual result.
 
-## 2. Relationship With Other Tables
+| Test | Expected result | Actual result |
+|---|---|---|
+| Wrong password on sign in | Error appears and entered values remain | Not tested |
+| Signup with existing email | Supabase error appears | Not tested |
+| Sign out, then press browser Back | Protected route redirects to login | Not tested |
+| Refresh while signed in | Session remains active without showing login first | Not tested |
+| Sign out in another tab, then refresh | Other tab is signed out | Not tested |
+| Visit `/dashboard` while signed out | Redirects to `/login` | Not tested |
+| Sign in after requesting `/dashboard` | Returns to `/dashboard` | Not tested |
 
-Other tables use the agents table to identify users.
+## Notes
 
-- tickets.assigned_to references agents.id.
-- ticket_comments.agent_id references agents.id.
-
-This helps us identify which agent is assigned to a ticket and which agent created a comment.
-
-## 3. Email Authentication Settings
-
-The Supabase Email provider is enabled.
-
-The Confirm email setting is turned OFF for development.
-
-This allows a newly registered user to receive a working session immediately without clicking an email confirmation link.
-
-IMPORTANT: Re-enable email confirmation for production.
-
-## 4. Authentication Functions
-
-We will use three main Supabase authentication functions.
-
-### signUp
-
-Creates a new user account using an email address and password.
-
-Example:
-
-supabase.auth.signUp({
-  email,
-  password,
-});
-
-### signInWithPassword
-
-Allows an existing user to log in using their email address and password.
-
-Example:
-
-supabase.auth.signInWithPassword({
-  email,
-  password,
-});
-
-### signOut
-
-Logs out the currently signed-in user.
-
-Example:
-
-supabase.auth.signOut();
-
-## 5. Session
-
-After a successful login, Supabase provides a session containing authentication information.
-
-The Supabase client manages the session and refreshes it when required.
-
-We can check the current session using:
-
-supabase.auth.getSession();
-
-If the session is null, it means nobody is currently signed in.
+- Supabase manages the authentication session.
+- `onAuthStateChange` updates the shared AuthContext.
+- Components using `useAuth()` receive updated authentication state.
+- Protected routes prevent access without a valid session.

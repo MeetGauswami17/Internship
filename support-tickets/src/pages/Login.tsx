@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import supabase from "../lib/supabaseClient";
 import PageHeader from "../components/ui/PageHeader";
 import { useAuth } from "../context/AuthContext";
@@ -20,6 +20,12 @@ type FormErrors = {
   password?: string;
 };
 
+type LoginLocationState = {
+  from?: {
+    pathname?: string;
+  };
+};
+
 const initialForm: FormState = {
   name: "",
   email: "",
@@ -28,6 +34,8 @@ const initialForm: FormState = {
 
 function Login() {
   const { session, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState<AuthMode>("signin");
   const [form, setForm] = useState<FormState>(initialForm);
@@ -35,6 +43,10 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const from =
+    (location.state as LoginLocationState | null)?.from?.pathname ??
+    "/dashboard";
 
   if (loading) {
     return (
@@ -141,10 +153,16 @@ function Login() {
           throw profileError;
         }
 
-        setSuccessMessage(
-          "Account created successfully! You are signed in."
-        );
         setForm(initialForm);
+        setSuccessMessage("Account created successfully!");
+
+        if (data.session) {
+          navigate(from, { replace: true });
+        } else {
+          setSuccessMessage(
+            "Account created! Please confirm your email before signing in."
+          );
+        }
       } else {
         const { error: authError } =
           await supabase.auth.signInWithPassword({
@@ -156,8 +174,8 @@ function Login() {
           throw authError;
         }
 
-        setSuccessMessage("Signed in!");
         setForm(initialForm);
+        navigate(from, { replace: true });
       }
     } catch (error) {
       console.error("Authentication error:", error);
@@ -305,12 +323,27 @@ function Login() {
           </div>
 
           {errorMessage && (
-            <p
+            <div
               role="alert"
-              className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
+              className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
             >
-              {errorMessage}
-            </p>
+              <svg
+                className="mt-0.5 h-5 w-5 shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path
+                  d="M12 8v5m0 3h.01"
+                  strokeLinecap="round"
+                />
+              </svg>
+
+              <span>{errorMessage}</span>
+            </div>
           )}
 
           {successMessage && (

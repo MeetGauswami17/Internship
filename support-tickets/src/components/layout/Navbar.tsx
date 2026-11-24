@@ -1,6 +1,7 @@
 
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import supabase from "../../lib/supabaseClient";
 
 function Navbar() {
   const { session, agent } = useAuth();
@@ -11,6 +12,14 @@ function Navbar() {
         ? "bg-indigo-500/10 text-indigo-400"
         : "text-slate-300 hover:bg-slate-800 hover:text-white"
     }`;
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Sign out failed:", error);
+    }
+  }
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-900/80 backdrop-blur">
@@ -42,7 +51,7 @@ function Navbar() {
 
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={handleSignOut}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
               >
                 Sign out
