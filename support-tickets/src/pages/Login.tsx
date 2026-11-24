@@ -100,10 +100,41 @@ function Login() {
     }
 
     if (form.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+      newErrors.password = "Password needs at least 8 characters.";
     }
 
     return newErrors;
+  }
+
+  function getAuthErrorMessage(error: {
+    message: string;
+    code?: string;
+  }): string {
+    const message = error.message.toLowerCase();
+
+    if (
+      error.code === "invalid_credentials" ||
+      message.includes("invalid login credentials")
+    ) {
+      return "Invalid login credentials.";
+    }
+
+    if (
+      error.code === "user_already_exists" ||
+      message.includes("already registered") ||
+      message.includes("already exists")
+    ) {
+      return "That email already has an account.";
+    }
+
+    if (
+      error.code === "weak_password" ||
+      message.includes("password should be")
+    ) {
+      return "Password needs at least 8 characters.";
+    }
+
+    return error.message;
   }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -153,15 +184,18 @@ function Login() {
           throw profileError;
         }
 
-        setForm(initialForm);
-        setSuccessMessage("Account created successfully!");
-
         if (data.session) {
+          setForm(initialForm);
           navigate(from, { replace: true });
         } else {
           setSuccessMessage(
-            "Account created! Please confirm your email before signing in."
+            "Account created. Check your email to confirm your account before signing in."
           );
+          setForm((previous) => ({
+            ...previous,
+            name: "",
+            password: "",
+          }));
         }
       } else {
         const { error: authError } =
@@ -180,8 +214,21 @@ function Login() {
     } catch (error) {
       console.error("Authentication error:", error);
 
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
+      if (
+        error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof error.message === "string"
+      ) {
+        setErrorMessage(
+          getAuthErrorMessage({
+            message: error.message,
+            code:
+              "code" in error && typeof error.code === "string"
+                ? error.code
+                : undefined,
+          })
+        );
       } else {
         setErrorMessage("Something went wrong. Please try again.");
       }
@@ -189,6 +236,9 @@ function Login() {
       setIsSubmitting(false);
     }
   }
+
+  const passwordIsTooShort =
+    form.password.length > 0 && form.password.length < 8;
 
   return (
     <div className="space-y-8">
@@ -312,8 +362,20 @@ function Login() {
               }
               disabled={isSubmitting}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 disabled:opacity-60"
-              aria-invalid={Boolean(errors.password)}
+              aria-invalid={Boolean(errors.password) || passwordIsTooShort}
+              aria-describedby="password-hint"
             />
+
+            <p
+              id="password-hint"
+              className={`mt-1 text-sm ${
+                passwordIsTooShort ? "text-red-400" : "text-slate-500"
+              }`}
+            >
+              {passwordIsTooShort
+                ? "Password needs at least 8 characters."
+                : "Password must contain at least 8 characters."}
+            </p>
 
             {errors.password && (
               <p className="mt-1 text-sm text-red-400">
@@ -341,7 +403,6 @@ function Login() {
                   strokeLinecap="round"
                 />
               </svg>
-
               <span>{errorMessage}</span>
             </div>
           )}
@@ -360,32 +421,6 @@ function Login() {
             disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting && (
-              <svg
-                className="h-5 w-5 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="9"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                />
-
-                <path
-                  className="opacity-75"
-                  d="M21 12a9 9 0 0 0-9-9"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-            )}
-
             {isSubmitting
               ? mode === "signup"
                 ? "Creating account..."

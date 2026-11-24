@@ -44,3 +44,13 @@
 - [ ] One clean ticket submission works.
 - [ ] README contains screenshots.
 - [ ] Changes committed to GitHub.
+
+
+## Screen 2: Agent Authentication QA
+
+- [ ] **Signup:** Create a new agent account and verify that the user is created in Supabase Auth and the matching row is inserted into `agents`.
+- [ ] **Signin:** Sign in with valid credentials and verify that the agent name appears in the navbar.
+- [ ] **Signout:** Click Sign out and verify that the navbar changes to Agent Login.
+- [ ] **Protected routes:** Open `/dashboard` while signed out and verify that it redirects to `/login`.
+- [ ] **Refresh:** Refresh while signed in and verify that the session is restored.
+- [ ] **Redirect memory:** Open a protected page while signed out, sign in, and verify that the app returns to the requested page.

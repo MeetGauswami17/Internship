@@ -23,7 +23,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Get the existing session and listen for authentication changes.
+  // Reflection: The whole app reacts to one signOut because AuthContext
+  // shares the session with every useAuth() consumer. When Supabase fires
+  // onAuthStateChange, the session changes, the context value updates,
+  // and every component using useAuth() re-renders with the new state.
+
   useEffect(() => {
     let mounted = true;
 
@@ -54,7 +58,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Load the agent profile whenever the session changes.
   useEffect(() => {
     let active = true;
 
@@ -99,7 +102,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook to access authentication information.
 function useAuth() {
   const context = useContext(AuthContext);
 
