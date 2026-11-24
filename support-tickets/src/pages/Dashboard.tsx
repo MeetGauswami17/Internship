@@ -10,11 +10,9 @@ import {
 } from "../data/constants";
 import { TICKET_STATUS } from "../lib/triage";
 
-// Format ticket creation time during render, not in state.
 function formatCreatedAt(dateString: string) {
   const createdAt = new Date(dateString);
-  const now = Date.now();
-  const difference = now - createdAt.getTime();
+  const difference = Date.now() - createdAt.getTime();
 
   if (Number.isNaN(createdAt.getTime())) {
     return "Unknown";
@@ -42,7 +40,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Shared loader: used by the initial effect and Refresh button.
   const loadTickets = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -66,20 +63,16 @@ function Dashboard() {
     }
   }, []);
 
-  // Load tickets once when the dashboard first opens.
   useEffect(() => {
     void loadTickets();
   }, [loadTickets]);
 
-  // Derived count: no extra state is needed.
   const openCount = tickets.filter(
     (ticket) => ticket.status === TICKET_STATUS.OPEN
   ).length;
 
   return (
     <div className="space-y-6">
-      {/* Week 9 idea: refresh on demand; Supabase real-time subscriptions
-          could be added in the future. */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <PageHeader
           title="Tickets"
@@ -118,12 +111,10 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* Ticket counts */}
       <p className="text-sm text-slate-400">
         {tickets.length} tickets - {openCount} still open
       </p>
 
-      {/* Error state */}
       {error && (
         <div
           role="alert"
@@ -133,13 +124,11 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Loading state */}
       {loading ? (
         <div className="rounded-xl border border-slate-700 bg-slate-900 p-10 text-center text-slate-400">
           Loading tickets...
         </div>
       ) : error ? null : tickets.length === 0 ? (
-        /* Empty state */
         <div className="rounded-xl border border-slate-700 bg-slate-900 p-10 text-center">
           <div className="mb-3 text-4xl">🎫</div>
           <h2 className="text-lg font-semibold text-white">
@@ -150,7 +139,6 @@ function Dashboard() {
           </p>
         </div>
       ) : (
-        /* Tickets table */
         <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900">
           <table className="w-full min-w-[850px] text-left text-sm">
             <thead className="border-b border-slate-700 bg-slate-800/70 text-xs uppercase text-slate-400">
@@ -170,8 +158,11 @@ function Dashboard() {
                   key={ticket.id}
                   className="transition hover:bg-slate-800/50"
                 >
-                  <td className="px-5 py-4 font-medium text-white">
-                    {ticket.subject}
+                  {/* Long subject fix */}
+                  <td className="max-w-[250px] px-5 py-4 font-medium text-white">
+                    <p className="line-clamp-2 break-words">
+                      {ticket.subject}
+                    </p>
                   </td>
 
                   <td className="px-5 py-4">

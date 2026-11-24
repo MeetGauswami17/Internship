@@ -38,17 +38,27 @@ function Home() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [submitted, setSubmitted] = useState<SubmittedTicket | null>(null);
+  const [submitted, setSubmitted] =
+    useState<SubmittedTicket | null>(null);
 
-  // Prevents two submissions before React updates the disabled button.
+  // Prevent duplicate submissions.
   const submittingRef = useRef(false);
 
   function setField(field: keyof FormState, value: string) {
-    setForm((previous) => ({ ...previous, [field]: value }));
-    setErrors((previous) => ({ ...previous, [field]: undefined }));
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      [field]: undefined,
+    }));
+
     setSubmitError("");
   }
 
+  // Validate all form fields.
   function validateForm(): FormErrors {
     const newErrors: FormErrors = {};
 
@@ -89,13 +99,13 @@ function Home() {
     setSubmitError("");
 
     try {
-      // First: get the AI triage decision.
+      // Step 1: Get the AI triage decision.
       const triage = await triageTicket(
         form.subject.trim(),
         form.description.trim()
       );
 
-      // Second: insert the ticket and retrieve its database ID.
+      // Step 2: Insert the ticket into Supabase.
       const { data: ticket, error: ticketError } = await supabase
         .from("tickets")
         .insert({
@@ -112,9 +122,11 @@ function Home() {
 
       if (ticketError) {
         console.error("Ticket insert failed:", ticketError);
+
         setSubmitError(
           "We couldn't submit your ticket right now. Please try again."
         );
+
         return;
       }
 
@@ -125,7 +137,7 @@ function Home() {
         return;
       }
 
-      // Third: insert the AI log using the ticket's ID.
+      // Step 3: Insert the AI log using the ticket ID.
       const { error: logError } = await supabase
         .from("ai_logs")
         .insert({
@@ -135,12 +147,13 @@ function Home() {
           ai_reasoning: triage.reasoning,
         });
 
-      // The ticket exists even if the AI log insert fails.
+      // The ticket is already saved, so continue to confirmation
+      // even if the AI log insert fails.
       if (logError) {
         console.error("AI log insert failed:", logError);
       }
 
-      // Fourth: show confirmation and reset the form.
+      // Step 4: Show confirmation and reset the form.
       setSubmitted({
         id: ticket.id,
         subject: ticket.subject,
@@ -150,6 +163,7 @@ function Home() {
       setErrors({});
     } catch (error) {
       console.error("Submission failed:", error);
+
       setSubmitError(
         "Something went wrong while submitting your ticket. Please try again."
       );
@@ -168,17 +182,18 @@ function Home() {
 
   return (
     <div className="space-y-12">
-      {/* Hero section */}
+      {/* Hero Section */}
       <section className="py-12 text-center">
         <h1 className="text-4xl font-bold text-white">
           How can we help you?
         </h1>
+
         <p className="mt-3 text-slate-400">
           Submit a support ticket and our team will get back to you.
         </p>
       </section>
 
-      {/* Confirmation replaces the form after a successful ticket insert */}
+      {/* Success Confirmation */}
       {submitted ? (
         <section className="mx-auto max-w-xl rounded-xl border border-green-700/50 bg-slate-900 p-8 text-center shadow-lg">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10 text-3xl text-green-400">
@@ -194,14 +209,14 @@ function Home() {
           </p>
 
           <p className="mt-4 text-sm leading-6 text-slate-400">
-            Our AI is reviewing your ticket - you will see its category
-            and priority on the confirmation shortly.
+            Our AI is reviewing your ticket - you will see its
+            category and priority on the confirmation shortly.
           </p>
 
           <button
             type="button"
             onClick={handleNewTicket}
-            className="mt-6 w-full rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-500"
+            className="mt-6 w-full rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           >
             Submit another ticket
           </button>
@@ -211,11 +226,13 @@ function Home() {
           </p>
         </section>
       ) : (
+        /* Submit Ticket Form */
         <section className="mx-auto max-w-xl rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-lg">
           <h2 className="mb-6 text-2xl font-semibold text-white">
             Submit a Ticket
           </h2>
 
+          {/* Submission Error */}
           {submitError && (
             <div
               role="alert"
@@ -229,16 +246,26 @@ function Home() {
             {/* Name and Email */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm text-slate-400">
+                <label
+                  htmlFor="customer-name"
+                  className="mb-2 block text-sm text-slate-400"
+                >
                   Customer Name
                 </label>
+
                 <input
+                  id="customer-name"
                   type="text"
                   value={form.name}
-                  onChange={(e) => setField("name", e.target.value)}
+                  onChange={(e) =>
+                    setField("name", e.target.value)
+                  }
                   placeholder="Enter your name"
+                  autoComplete="name"
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  aria-invalid={Boolean(errors.name)}
                 />
+
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-400">
                     {errors.name}
@@ -247,16 +274,26 @@ function Home() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-slate-400">
+                <label
+                  htmlFor="customer-email"
+                  className="mb-2 block text-sm text-slate-400"
+                >
                   Customer Email
                 </label>
+
                 <input
+                  id="customer-email"
                   type="email"
                   value={form.email}
-                  onChange={(e) => setField("email", e.target.value)}
+                  onChange={(e) =>
+                    setField("email", e.target.value)
+                  }
                   placeholder="Enter your email"
+                  autoComplete="email"
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  aria-invalid={Boolean(errors.email)}
                 />
+
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-400">
                     {errors.email}
@@ -267,16 +304,25 @@ function Home() {
 
             {/* Subject */}
             <div>
-              <label className="mb-2 block text-sm text-slate-400">
+              <label
+                htmlFor="ticket-subject"
+                className="mb-2 block text-sm text-slate-400"
+              >
                 Subject
               </label>
+
               <input
+                id="ticket-subject"
                 type="text"
                 value={form.subject}
-                onChange={(e) => setField("subject", e.target.value)}
+                onChange={(e) =>
+                  setField("subject", e.target.value)
+                }
                 placeholder="What do you need help with?"
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-invalid={Boolean(errors.subject)}
               />
+
               {errors.subject && (
                 <p className="mt-1 text-sm text-red-400">
                   {errors.subject}
@@ -286,10 +332,15 @@ function Home() {
 
             {/* Description */}
             <div>
-              <label className="mb-2 block text-sm text-slate-400">
+              <label
+                htmlFor="ticket-description"
+                className="mb-2 block text-sm text-slate-400"
+              >
                 Description
               </label>
+
               <textarea
+                id="ticket-description"
                 rows={6}
                 value={form.description}
                 onChange={(e) =>
@@ -297,7 +348,9 @@ function Home() {
                 }
                 placeholder="Describe your issue in detail..."
                 className="w-full resize-y rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-invalid={Boolean(errors.description)}
               />
+
               {errors.description && (
                 <p className="mt-1 text-sm text-red-400">
                   {errors.description}
@@ -308,10 +361,21 @@ function Home() {
                 <span>
                   The more detail you give, the better the AI can triage.
                 </span>
-                <span>{form.description.length} characters</span>
+
+                <span>
+                  {form.description.length} characters
+                </span>
               </div>
+
+              {/* Long Description Warning */}
+              {form.description.length > 5000 && (
+                <p className="mt-2 text-sm text-amber-400">
+                  Very long description - consider summarizing.
+                </p>
+              )}
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isSaving}

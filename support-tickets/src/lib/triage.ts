@@ -24,7 +24,7 @@ export const TICKET_STATUS = {
 
 export async function triageTicket(
   subject: string,
-  description: string
+  _description: string
 ): Promise<TriageResult> {
   console.log("AI triage will run for:", subject);
 
