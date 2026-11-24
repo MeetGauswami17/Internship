@@ -10,7 +10,6 @@ export type TriageResult = {
   reasoning: string;
 };
 
-// Placeholder constants until real AI triage is added.
 export const TICKET_CATEGORY = {
   OTHER: "other" as TicketCategory,
 };
@@ -19,8 +18,10 @@ export const TICKET_PRIORITY = {
   MEDIUM: "medium" as TicketPriority,
 };
 
-// Week 8: Replace this function's body with a Supabase
-// Edge Function call to Gemini. Keep the same signature.
+export const TICKET_STATUS = {
+  OPEN: "open" as const,
+};
+
 export async function triageTicket(
   subject: string,
   description: string
