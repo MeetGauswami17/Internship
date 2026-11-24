@@ -1,9 +1,16 @@
+import PageHeader from "../components/ui/PageHeader";
+
 
 function Login() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
 
       <div className="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm">
+
+        <PageHeader
+          title="Agent Login"
+          subtitle="Sign in to access your support dashboard."
+        />
 
         <h1 className="text-3xl font-bold text-gray-900 text-center">
           Agent Login

@@ -1,8 +1,8 @@
 
 import { useEffect, useState } from "react";
 import supabase from "../lib/supabaseClient";
-
 import type { Ticket } from "../types/database";
+import PageHeader from "../components/ui/PageHeader";
 
 import {
   CATEGORY_COLORS,
@@ -42,13 +42,11 @@ function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold text-gray-900">
-        Agent Dashboard
-      </h1>
 
-      <p className="mt-3 text-gray-600">
-        Manage customer support tickets from one place.
-      </p>
+      <PageHeader
+        title="Agent Dashboard"
+        subtitle="Manage customer support tickets from one place."
+      />
 
       {/* Total Tickets */}
       <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
@@ -151,6 +149,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+
     </div>
   );
 }

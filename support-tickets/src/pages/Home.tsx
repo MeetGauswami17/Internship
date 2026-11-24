@@ -1,8 +1,14 @@
+import PageHeader from "../components/ui/PageHeader";
+
 
 function Home() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="max-w-3xl text-center">
+        <PageHeader
+          title="Welcome to TicketDesk"
+          subtitle="Your AI-powered support ticketing solution"
+        />
 
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
           TicketDesk - AI Support

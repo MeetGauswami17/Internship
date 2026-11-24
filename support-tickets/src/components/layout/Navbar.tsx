@@ -1,55 +1,45 @@
 
-import { NavLink } from "react-router";
+import { Link, NavLink } from "react-router-dom";
 
 function Navbar() {
-  const navLinkStyle = ({ isActive }: { isActive: boolean }) =>
-    `rounded-lg px-4 py-2 text-sm font-medium transition ${
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
       isActive
-        ? "bg-indigo-600 text-white"
-        : "text-gray-600 hover:bg-gray-100"
+        ? "bg-indigo-500/10 text-indigo-400"
+        : "text-slate-300 hover:bg-slate-800 hover:text-white"
     }`;
 
   return (
-    <nav className="border-b bg-white shadow-sm">
+    <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+      <nav className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-lg font-bold text-white">
+            T
+          </div>
+          <span className="text-xl font-bold tracking-tight text-white">
+            TicketDesk
+          </span>
+        </Link>
 
-        <NavLink
-          to="/"
-          className="text-xl font-bold text-indigo-600"
-        >
-          TicketDesk
-        </NavLink>
-
-        <div className="flex items-center gap-2">
-
-          <NavLink
-            to="/"
-            end
-            className={navLinkStyle}
-          >
+        <div className="flex flex-wrap items-center gap-2">
+          <NavLink to="/" end className={navLinkClass}>
             Submit a Ticket
           </NavLink>
 
-          <NavLink
-            to="/login"
-            className={navLinkStyle}
-          >
+          <NavLink to="/login" className={navLinkClass}>
             Agent Login
           </NavLink>
 
-          <NavLink
-            to="/dashboard"
-            className={navLinkStyle}
-          >
+          <NavLink to="/dashboard" className={navLinkClass}>
             Dashboard
           </NavLink>
-
         </div>
 
-      </div>
+        {/* Empty slot for signed-in agent name in Week 7 */}
 
-    </nav>
+      </nav>
+    </header>
   );
 }
 
